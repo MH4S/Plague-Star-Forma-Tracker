@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plague Star Forma Tracker</title>
+<meta property="og:title" content="Plague Star Forma Tracker">
+<meta property="og:description" content="Track how much forma you've earned from Plague Star, right in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mh4s.github.io/Plague-Star-Forma-Tracker/">
+<style>
+  :root {
+    --bg: #0a0612;
+    --card: #150d24;
+    --panel: #1c1230;
+    --gold: #e8b84b;
+    --gold-dim: #a8823a;
+    --purple: #9b6fe0;
+    --text: #f0e9fb;
+    --sub: #8e7fa8;
+    --danger: #ff5c7a;
+    --border: #2e2049;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(circle at 50% 0%, #1a0f30 0%, var(--bg) 60%);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    background: linear-gradient(180deg, var(--card) 0%, #100a1d 100%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 26px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 0 0 1px rgba(155,111,224,0.08), 0 20px 50px rgba(0,0,0,0.6);
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .header svg { width: 30px; height: 30px; }
+  .title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+  }
+  .event-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(90deg, rgba(232,184,75,0.08), rgba(155,111,224,0.12), rgba(232,184,75,0.08));
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--sub);
+    letter-spacing: 0.4px;
+    margin-bottom: 16px;
+  }
+  .event-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 8px var(--gold);
+    flex-shrink: 0;
+  }
+  .section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .section::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--purple), transparent);
+    opacity: 0.6;
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+  }
+  .big-number-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .big-number-row svg { width: 34px; height: 34px; flex-shrink: 0; opacity: 0.9; }
+  .big-number {
+    font-size: 44px;
+    font-weight: 800;
+    color: var(--gold);
+    text-align: center;
+    line-height: 1;
+    text-shadow: 0 0 18px rgba(232,184,75,0.35);
+  }
+  .buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  button {
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.08s ease, filter 0.15s ease;
+    color: #180f28;
+  }
+  button:active { transform: scale(0.95); }
+  button:hover { filter: brightness(1.1); }
+  .plus, .minus {
+    height: 52px;
+    font-size: 14px;
+  }
+  .plus { flex: 1; background: linear-gradient(180deg, var(--purple), #7a4fc2); color: #fff; }
+  .minus {
+    flex: 0 0 52px;
+    width: 52px;
+    padding: 0;
+    font-size: 20px;
+    background: rgba(255,92,122,0.1);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+  }
+  .minus:hover { background: rgba(255,92,122,0.2); }
+
+  .buttons-small { margin-bottom: 10px; }
+  .plus-small, .minus-small {
+    height: 38px;
+    font-size: 12px;
+  }
+  .plus-small {
+    flex: 1;
+    background: rgba(74,222,180,0.1);
+    border: 1px solid #4adeb4;
+    color: #4adeb4;
+  }
+  .plus-small:hover { background: rgba(74,222,180,0.2); }
+  .minus-small {
+    flex: 0 0 52px;
+    width: 52px;
+    padding: 0;
+    font-size: 16px;
+    background: rgba(255,92,122,0.1);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+  }
+  .minus-small:hover { background: rgba(255,92,122,0.2); }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .row input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 13px;
+    text-align: center;
+    min-width: 0;
+  }
+  .row input:focus { outline: none; border-color: var(--purple); }
+  .row input::placeholder { color: var(--sub); }
+  .row button {
+    width: auto;
+    height: auto;
+    padding: 10px 16px;
+    font-size: 12px;
+    background: var(--border);
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .reset-inline {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 2px;
+  }
+  .reset-inline button {
+    width: auto;
+    height: auto;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--sub);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 7px;
+  }
+  .reset-inline button:hover { color: var(--danger); border-color: var(--danger); }
+  .confirm-row {
+    display: none;
+    gap: 6px;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 6px;
+  }
+  .confirm-row.show { display: flex; }
+  .confirm-text { font-size: 11px; color: var(--danger); }
+  .confirm-row button {
+    width: auto;
+    height: auto;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 7px;
+  }
+  .confirm-yes { background: var(--danger); color: #fff; }
+  .confirm-no { background: var(--border); color: var(--text); }
+
+  .convert-hint {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 10px;
+  }
+  .convert-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--gold);
+    text-shadow: 0 0 14px rgba(232,184,75,0.3);
+    line-height: 1;
+  }
+  .convert-txt {
+    font-size: 11.5px;
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .cap-hint {
+    font-size: 11px;
+    color: var(--sub);
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .cap-hint.warn { color: var(--danger); font-weight: 600; }
+
+  .tier-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .tier-tab {
+    flex: 1;
+    height: 34px;
+    font-size: 11px;
+    font-weight: 600;
+    background: transparent;
+    color: var(--sub);
+    border-radius: 7px;
+  }
+  .tier-tab.active {
+    background: linear-gradient(180deg, #3f8fd1, #2a6ca8);
+    color: #fff;
+  }
+
+  .stat-pair {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .stat-box {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .stat-box .num {
+    font-size: 26px;
+    font-weight: 800;
+    color: #fff;
+  }
+  .stat-box.highlight { border-color: rgba(232,184,75,0.3); }
+  .stat-box.highlight .num { color: var(--gold); }
+  .stat-box .lbl {
+    font-size: 10px;
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
+
+  .status {
+    font-size: 11px;
+    color: var(--sub);
+    text-align: center;
+    margin-top: 4px;
+    min-height: 14px;
+  }
+
+  .force-save {
+    width: 100%;
+    height: 46px;
+    margin-top: 12px;
+    font-size: 13px;
+    background: linear-gradient(180deg, var(--gold), var(--gold-dim));
+    color: #241705;
+    letter-spacing: 0.4px;
+  }
+
+  .credit {
+    text-align: right;
+    font-size: 9.5px;
+    color: var(--sub);
+    opacity: 0.55;
+    margin-top: 10px;
+    letter-spacing: 0.3px;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="gGold" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#f5d488"/>
+            <stop offset="100%" stop-color="#c8912e"/>
+          </linearGradient>
+        </defs>
+        <polygon points="50,4 90,28 90,72 50,96 10,72 10,28" fill="none" stroke="url(#gGold)" stroke-width="4"/>
+        <polygon points="50,20 74,34 74,66 50,80 26,66 26,34" fill="url(#gGold)" opacity="0.85"/>
+        <circle cx="50" cy="50" r="9" fill="#1c1230"/>
+      </svg>
+      <div class="title">Warframe Forma Tracker</div>
+    </div>
+
+    <div class="event-banner">
+      <span class="event-dot"></span>
+      Event Window: Sep 9 – Sep 23
+    </div>
+
+    <!-- STANDING SECTION -->
+    <div class="section">
+      <div class="section-label">Standing</div>
+      <div class="big-number-row">
+        <div class="big-number" id="standing">0</div>
+      </div>
+      <div class="cap-hint" id="capHint">Cap: 494,000 standing before you must buy</div>
+
+      <div class="tier-tabs">
+        <button class="tier-tab active" id="tierBtn0" data-tier="0">Plague Star</button>
+        <button class="tier-tab" id="tierBtn1" data-tier="1">Advanced</button>
+        <button class="tier-tab" id="tierBtn2" data-tier="2">Steel Path</button>
+      </div>
+
+      <div class="buttons">
+        <button class="minus" id="minusBtn">−</button>
+        <button class="plus" id="plusBtn">+1,025</button>
+      </div>
+
+      <div class="buttons buttons-small">
+        <button class="minus-small" id="minusSmallBtn">−</button>
+        <button class="plus-small" id="plusSmallBtn">+25</button>
+      </div>
+
+      <div class="row">
+        <input type="number" id="editStandingInput" placeholder="set standing manually">
+        <button id="editStandingBtn">Set</button>
+      </div>
+
+      <div class="reset-inline">
+        <button id="resetBtn">Reset standing</button>
+      </div>
+      <div class="confirm-row" id="confirmRow">
+        <span class="confirm-text">Reset standing to 0?</span>
+        <button class="confirm-yes" id="confirmYes">Yes</button>
+        <button class="confirm-no" id="confirmNo">Cancel</button>
+      </div>
+    </div>
+
+    <!-- CONVERT SECTION -->
+    <div class="section">
+      <div class="section-label">Convert Standing → Forma</div>
+      <div class="row">
+        <input type="number" id="convertInput" placeholder="forma to buy">
+        <button id="convertBtn">Convert</button>
+      </div>
+      <div class="convert-hint" id="convertHint">
+        <span class="convert-num" id="convertNum">0</span>
+        <span class="convert-txt">forma available now</span>
+      </div>
+    </div>
+
+    <!-- FORMA OWNED SECTION -->
+    <div class="section">
+      <div class="section-label">Forma Owned</div>
+      <div class="row">
+        <input type="number" id="editBoughtInput" placeholder="set forma bought manually">
+        <button id="editBoughtBtn">Set</button>
+      </div>
+      <div class="stat-pair">
+        <div class="stat-box">
+          <div class="num" id="boughtCount">0</div>
+          <div class="lbl">Bought</div>
+        </div>
+        <div class="stat-box highlight">
+          <div class="num" id="totalForma">0</div>
+          <div class="lbl">Total (+ standing)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status" id="status">loading...</div>
+
+    <button class="force-save" id="forceSaveBtn">Force Save</button>
+
+    <div class="credit">made by MH4S</div>
+  </div>
+
+<script>
+  const STANDING_KEY = 'standing_total';
+  const BOUGHT_KEY = 'forma_bought';
+  const TIER_KEY = 'selected_tier';
+  const FORMA_COST = 3000;
+  const STANDING_CAP = 494000;
+
+  const TIERS = [
+    { name: 'Plague Star', base: 1025, bonus: 25 },
+    { name: 'Advanced', base: 3200, bonus: 75 },
+    { name: 'Steel Path', base: 3800, bonus: 100 }
+  ];
+  let currentTier = 0;
+
+  const standingEl = document.getElementById('standing');
+  const capHintEl = document.getElementById('capHint');
+  const boughtCountEl = document.getElementById('boughtCount');
+  const totalFormaEl = document.getElementById('totalForma');
+  const convertNumEl = document.getElementById('convertNum');
+  const statusEl = document.getElementById('status');
+  const minusBtn = document.getElementById('minusBtn');
+  const plusBtn = document.getElementById('plusBtn');
+  const minusSmallBtn = document.getElementById('minusSmallBtn');
+  const plusSmallBtn = document.getElementById('plusSmallBtn');
+
+  let standing = 0;
+  let bought = 0;
+
+  function load() {
+    try {
+      const v = localStorage.getItem(STANDING_KEY);
+      standing = v !== null ? parseInt(v, 10) : 0;
+    } catch (e) { standing = 0; }
+    try {
+      const v = localStorage.getItem(BOUGHT_KEY);
+      bought = v !== null ? parseInt(v, 10) : 0;
+    } catch (e) { bought = 0; }
+    let savedTier = 0;
+    try {
+      const v = localStorage.getItem(TIER_KEY);
+      const parsed = v !== null ? parseInt(v, 10) : 0;
+      savedTier = (parsed >= 0 && parsed <= 2) ? parsed : 0;
+    } catch (e) { savedTier = 0; }
+    selectTier(savedTier);
+    render();
+    statusEl.textContent = 'saved automatically';
+  }
+
+  function saveStanding() {
+    statusEl.textContent = 'saving...';
+    try {
+      localStorage.setItem(STANDING_KEY, String(standing));
+      statusEl.textContent = 'saved automatically';
+    } catch (e) {
+      statusEl.textContent = 'save failed, try again';
+    }
+  }
+
+  function saveBought() {
+    statusEl.textContent = 'saving...';
+    try {
+      localStorage.setItem(BOUGHT_KEY, String(bought));
+      statusEl.textContent = 'saved automatically';
+    } catch (e) {
+      statusEl.textContent = 'save failed, try again';
+    }
+  }
+
+  function saveBoth() {
+    statusEl.textContent = 'saving...';
+    try {
+      localStorage.setItem(STANDING_KEY, String(standing));
+      localStorage.setItem(BOUGHT_KEY, String(bought));
+      statusEl.textContent = 'saved automatically';
+    } catch (e) {
+      statusEl.textContent = 'save failed, try again';
+    }
+  }
+
+  function updateTierLabels() {
+    const t = TIERS[currentTier];
+    plusBtn.textContent = `+${t.base.toLocaleString()}`;
+    plusSmallBtn.textContent = `+${t.bonus}`;
+  }
+
+  function selectTier(index) {
+    currentTier = index;
+    document.querySelectorAll('.tier-tab').forEach((btn, i) => {
+      btn.classList.toggle('active', i === index);
+    });
+    updateTierLabels();
+    render();
+    try {
+      localStorage.setItem(TIER_KEY, String(index));
+    } catch (e) {}
+  }
+
+  document.getElementById('tierBtn0').addEventListener('click', () => selectTier(0));
+  document.getElementById('tierBtn1').addEventListener('click', () => selectTier(1));
+  document.getElementById('tierBtn2').addEventListener('click', () => selectTier(2));
+
+  function render() {
+    standingEl.textContent = standing.toLocaleString();
+    boughtCountEl.textContent = bought;
+    const formaFromStanding = Math.floor(standing / FORMA_COST);
+    totalFormaEl.textContent = bought + formaFromStanding;
+    convertNumEl.textContent = formaFromStanding;
+
+    if (standing >= STANDING_CAP) {
+      capHintEl.textContent = `Standing capped at 494,000 — buy forma to keep earning`;
+      capHintEl.classList.add('warn');
+    } else {
+      const remaining = STANDING_CAP - standing;
+      capHintEl.textContent = `Cap: 494,000 standing (${remaining.toLocaleString()} left before cap)`;
+      if (remaining <= TIERS[currentTier].base * 2) {
+        capHintEl.classList.add('warn');
+      } else {
+        capHintEl.classList.remove('warn');
+      }
+    }
+  }
+
+  // Standing +/- buttons (main tier base)
+  plusBtn.addEventListener('click', () => {
+    standing += TIERS[currentTier].base;
+    render();
+    saveStanding();
+  });
+
+  minusBtn.addEventListener('click', () => {
+    standing = Math.max(0, standing - TIERS[currentTier].base);
+    render();
+    saveStanding();
+  });
+
+  plusSmallBtn.addEventListener('click', () => {
+    standing += TIERS[currentTier].bonus;
+    render();
+    saveStanding();
+  });
+
+  minusSmallBtn.addEventListener('click', () => {
+    standing = Math.max(0, standing - TIERS[currentTier].bonus);
+    render();
+    saveStanding();
+  });
+
+  // Manual set standing
+  document.getElementById('editStandingBtn').addEventListener('click', () => {
+    const input = document.getElementById('editStandingInput');
+    const val = parseInt(input.value, 10);
+    if (!isNaN(val) && val >= 0) {
+      standing = val;
+      render();
+      saveStanding();
+      input.value = '';
+    }
+  });
+  document.getElementById('editStandingInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('editStandingBtn').click();
+  });
+
+  // Reset standing only
+  const resetBtn = document.getElementById('resetBtn');
+  const confirmRow = document.getElementById('confirmRow');
+  const confirmYes = document.getElementById('confirmYes');
+  const confirmNo = document.getElementById('confirmNo');
+
+  resetBtn.addEventListener('click', () => {
+    resetBtn.style.display = 'none';
+    confirmRow.classList.add('show');
+  });
+  confirmYes.addEventListener('click', () => {
+    standing = 0;
+    render();
+    saveStanding();
+    confirmRow.classList.remove('show');
+    resetBtn.style.display = 'inline-block';
+  });
+  confirmNo.addEventListener('click', () => {
+    confirmRow.classList.remove('show');
+    resetBtn.style.display = 'inline-block';
+  });
+
+  // Convert standing to forma
+  document.getElementById('convertBtn').addEventListener('click', () => {
+    const input = document.getElementById('convertInput');
+    const n = parseInt(input.value, 10);
+    if (isNaN(n) || n <= 0) return;
+    const cost = n * FORMA_COST;
+    if (cost > standing) {
+      statusEl.textContent = `not enough standing (need ${cost.toLocaleString()})`;
+      return;
+    }
+    standing -= cost;
+    bought += n;
+    render();
+    saveBoth();
+    input.value = '';
+  });
+  document.getElementById('convertInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('convertBtn').click();
+  });
+
+  // Manual set bought
+  document.getElementById('editBoughtBtn').addEventListener('click', () => {
+    const input = document.getElementById('editBoughtInput');
+    const val = parseInt(input.value, 10);
+    if (!isNaN(val) && val >= 0) {
+      bought = val;
+      render();
+      saveBought();
+      input.value = '';
+    }
+  });
+  document.getElementById('editBoughtInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('editBoughtBtn').click();
+  });
+
+  // Force save (retry both values)
+  document.getElementById('forceSaveBtn').addEventListener('click', () => {
+    saveBoth();
+  });
+
+  updateTierLabels();
+  load();
+</script>
+</body>
+</html>
